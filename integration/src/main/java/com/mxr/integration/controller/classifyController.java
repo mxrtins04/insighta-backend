@@ -15,6 +15,8 @@ import com.mxr.integration.queryparser.NaturalQueryParser;
 import com.mxr.integration.queryparser.ParsedQuery;
 import com.mxr.integration.exceptions.InvalidQueryParametersException;
 import com.mxr.integration.exceptions.UninterpretableQueryException;
+import com.mxr.integration.security.RequireRole;
+import com.mxr.integration.security.Role;
 
 import jakarta.validation.Valid;
 
@@ -52,6 +54,7 @@ public class classifyController {
     }
 
     @PostMapping("/api/profiles")
+    @RequireRole(Role.ADMIN)
     public ResponseEntity<ProcessedResponse> savePerson(@Valid @RequestBody NewEntityRequest request) {
         String name = request.getName();
         ProcessedResponse response = integrationService.savePerson(name);
@@ -71,7 +74,8 @@ public class classifyController {
 
     @GetMapping("/api/profiles")
     public ProfilePageResponse getProfiles(@RequestParam(required = false) String gender,
-            @RequestParam(name = "country_id", required = false) String countryId, @RequestParam(name = "age_group", required = false) String ageGroup,
+            @RequestParam(name = "country_id", required = false) String countryId,
+            @RequestParam(name = "age_group", required = false) String ageGroup,
             @RequestParam(name = "min_age", required = false) Integer minimumAge,
             @RequestParam(name = "max_age", required = false) Integer maximumAge,
             @RequestParam(name = "min_country_probability", required = false) Double minCountryProbability,
@@ -102,6 +106,7 @@ public class classifyController {
     }
 
     @DeleteMapping("/api/profiles/{id}")
+    @RequireRole(Role.ADMIN)
     public ResponseEntity<String> deleteUserById(@PathVariable UUID id) {
         integrationService.deletePersonById(id);
         return ResponseEntity.noContent().build();
@@ -160,6 +165,7 @@ public class classifyController {
     }
 
     @PostMapping("/api/admin/seed")
+    @RequireRole(Role.ADMIN)
     public ResponseEntity<String> seedDatabase() {
         try {
             databaseSeeder.seedDatabase();

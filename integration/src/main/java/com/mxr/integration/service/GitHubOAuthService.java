@@ -14,6 +14,7 @@ import com.mxr.integration.model.User;
 import com.mxr.integration.repo.RefreshTokenRepository;
 import com.mxr.integration.repo.UserRepository;
 import com.mxr.integration.security.JwtUtil;
+import com.mxr.integration.security.Role;
 
 import lombok.Data;
 
@@ -55,7 +56,7 @@ public class GitHubOAuthService {
         String tokenUrl = "https://github.com/login/oauth/access_token" +
                 "?client_id=" + clientId +
                 "&client_secret=" + clientSecret +
-           //     "&code=" + code +
+                // "&code=" + code +
                 "&code_verifier=" + codeVerifier;
 
         GitHubTokenResponse tokenResponse = restTemplate.postForObject(tokenUrl, null, GitHubTokenResponse.class);
@@ -68,7 +69,7 @@ public class GitHubOAuthService {
 
         User user = createOrUpdateUser(githubUser);
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole());
+        String accessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().name());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
 
         saveRefreshToken(refreshToken, user.getUsername());
@@ -105,7 +106,7 @@ public class GitHubOAuthService {
                 .username(githubUser.getLogin())
                 .email(githubUser.getEmail())
                 .avatarUrl(githubUser.getAvatar_url())
-                .role("analyst")
+                .role(Role.ANALYST)
                 .isActive(true)
                 .lastLoginAt(Instant.now())
                 .build();
@@ -152,7 +153,7 @@ public class GitHubOAuthService {
         tokenEntity.setRevoked(true);
         refreshTokenRepository.save(tokenEntity);
 
-        String newAccessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole());
+        String newAccessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().name());
         String newRefreshToken = jwtUtil.generateRefreshToken(user.getUsername());
 
         saveRefreshToken(newRefreshToken, user.getUsername());
