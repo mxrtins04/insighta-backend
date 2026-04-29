@@ -12,6 +12,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.mxr.integration.security.JwtAuthenticationFilter;
 import com.mxr.integration.security.RoleAuthorizationFilter;
+import com.mxr.integration.filter.ApiVersionFilter;
+import com.mxr.integration.filter.RateLimitFilter;
+import com.mxr.integration.filter.RequestLoggingFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -19,11 +22,18 @@ public class SecurityConfig implements WebMvcConfigurer {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RoleAuthorizationFilter roleAuthorizationFilter;
+    private final ApiVersionFilter apiVersionFilter;
+    private final RateLimitFilter rateLimitFilter;
+    private final RequestLoggingFilter requestLoggingFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-            RoleAuthorizationFilter roleAuthorizationFilter) {
+            RoleAuthorizationFilter roleAuthorizationFilter, ApiVersionFilter apiVersionFilter,
+            RateLimitFilter rateLimitFilter, RequestLoggingFilter requestLoggingFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.roleAuthorizationFilter = roleAuthorizationFilter;
+        this.apiVersionFilter = apiVersionFilter;
+        this.rateLimitFilter = rateLimitFilter;
+        this.requestLoggingFilter = requestLoggingFilter;
     }
 
     @Bean
@@ -45,6 +55,9 @@ public class SecurityConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(requestLoggingFilter).addPathPatterns("/**");
+        registry.addInterceptor(rateLimitFilter).addPathPatterns("/**");
+        registry.addInterceptor(apiVersionFilter).addPathPatterns("/api/**");
         registry.addInterceptor(roleAuthorizationFilter).addPathPatterns("/api/**");
     }
 }
